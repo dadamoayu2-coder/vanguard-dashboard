@@ -244,31 +244,12 @@ tr:hover td{background:rgba(0,229,255,.04)}
 <script>
 'use strict';
 /* ================= credentials ================= */
-const CFG = {
-  owner: 'dadamoayu2-coder',
-  repo: 'vanguard-keys',
-  branch: 'main',
-};
-const PRIV = { // 평문 키 보관용 (vanguard-keys 공개 레포)
-  owner: 'dadamoayu2-coder',
-  repo: 'vanguard-keys',
-  branch: 'main',
-  path: 'server/keys_plain.json',
-};
-let TOKEN = '';
 const ADMIN_USER = 'admin';
 const ADMIN_PASS = 'admin';
-const __KEY = 'VGD-2026-KEYCTRL';
-const __PARTS = ['MS80cgN9fH9PB3AdG2U','CLWEKDxlQcwt1fCB2IQ','0QC39vLXUdWX1rQw=='];
-function embedTok(){
-  try{
-    const raw = atob(__PARTS.join(''));
-    let s='';
-    for(let i=0;i<raw.length;i++) s += String.fromCharCode(raw.charCodeAt(i) ^ __KEY.charCodeAt(i % __KEY.length));
-    if(!s.startsWith('ghp_')) return '';
-    return s;
-  }catch(e){ return ''; }
-}
+const API_BASE = 'https://stealth-official.xyz/123/api';
+let TOKEN = '';
+let data = null;
+let timer = null;
 
 /* ================= i18n ================= */
 const I = {
@@ -280,71 +261,27 @@ const T = (k) => (I[LANG] && I[LANG][k]) || I.en[k] || k;
 const btnLang = document.getElementById('btnLang');
 function applyI18n(){ document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); }); btnLang.textContent = LANG==='ko' ? 'EN' : 'KO'; }
 
-/* ================= github client ================= */
-let data = null;
-let timer = null;
+/* ================= api client ================= */
 
-function ghHeaders(accept){ const h={Authorization:`Bearer ${TOKEN}`,'X-GitHub-Api-Version':'2022-11-28'}; if(accept) h.Accept=accept; return h; }
+async function apiFetch(path, opts = {}) {
+  const url = path.startsWith('http') ? path : `${API_BASE}/${path}`;
+  const defaults = { headers: { 'Content-Type': 'application/json' } };
+  if (TOKEN) defaults.headers['Authorization'] = `Bearer ${TOKEN}`;
+  const res = await fetch(url, { ...defaults, ...opts });
+  const text = await res.text();
+  let json = null;
+  try { json = text ? JSON.parse(text) : {}; } catch(e) {}
+  if (!res.ok) throw { msg: (json && json.message) || text || `HTTP ${res.status}`, status: res.status };
+  return json;
+}
+
 function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
-async function ghErr(res, text){ let m=text; try{ m=(JSON.parse(text)).message||m; }catch(e){} return {status:res.status, msg:m}; }
 function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
 
-// Git database API: blob -> tree -> commit -> ref. Atomic, no file sha needed.
-async function gitWrite(owner, repo, branch, repoPath, content, message, retries=4){
-  const BH=`https://api.github.com/repos/${owner}/${repo}`;
-  const blob = await gitGet(`${BH}/git/blobs`, {content: b64enc(content), encoding:'utf-8'});
-  const blobSha = blob.sha;
-  for(let attempt=0; attempt<retries; attempt++){
-    try{
-      const ref = await gitGet(`${BH}/git/ref/heads/${branch}`);
-      const commitSha = ref.object.sha;
-      const commit = await gitGet(`${BH}/commits/${commitSha}`);
-      const baseTree = commit.commit.tree.sha;
-      const tree = await gitGet(`${BH}/git/trees`, {base_tree: baseTree, tree:[{path:repoPath, mode:'100644', type:'blob', sha:blobSha}]});
-      const newCommit = await gitGet(`${BH}/git/commits`, {message:message, tree:tree.sha, parents:[commitSha]});
-      const res = await fetch(`${BH}/git/refs/heads/${branch}`, {method:'PATCH', headers:ghHeaders('application/vnd.github+json'), body:JSON.stringify({sha:newCommit.sha, force:false})});
-      if(res.ok) return;
-      if(res.status===409){ await new Promise(r=>setTimeout(r,800)); continue; }
-      const t=await res.text(); throw {status:res.status, msg:t};
-    }catch(e){
-      if(attempt===retries-1) throw e;
-      await new Promise(r=>setTimeout(r,800));
-    }
-  }
-  throw {status:0, msg:'git write retries exhausted'};
-}
-
-// GET or POST with JSON
-async function gitGet(url, bodyObj=null){
-  const opts={headers:ghHeaders('application/vnd.github+json')};
-  if(bodyObj){ opts.method='POST'; opts.body=JSON.stringify(bodyObj); }
-  const res=await fetch(url, opts);
-  const t=await res.text();
-  if(!res.ok){ try{ throw {status:res.status, msg:(JSON.parse(t)).message||t}; }catch(e2){ throw {status:res.status, msg:t}; } }
-  return t ? JSON.parse(t) : {};
-}
-
-async function ghWrite(path, content, msg){ return await gitWrite(CFG.owner, CFG.repo, CFG.branch, path, content, msg); }
-async function privPut(content, msg){ return await gitWrite(PRIV.owner, PRIV.repo, PRIV.branch, PRIV.path, content, msg); }
-async function ghGetRaw(path){
-  const res = await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
-  if(res.status===404) return null;
-  const text=await res.text();
-  if(!res.ok) throw await ghErr(res,text);
-  return text.replace(/^\uFEFF/, '');
-}
-
-async function privGetRaw(){
-  const res = await fetch(`https://api.github.com/repos/${PRIV.owner}/${PRIV.repo}/contents/${PRIV.path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
-  if(res.status===404) return null;
-  const text=await res.text();
-  if(!res.ok) throw await ghErr(res,text);
-  return text.replace(/^\uFEFF/, '');
-}
-
 /* ================= data model ================= */
-let bindings = {}; // hash -> {hwid, days, act} from keys.txt (auto-bind/expiry info)
-let plain = {};    // hash -> plaintext key (private repo)
+let bindings = {}; // hash -> {hwid, days, act} from keys
+let plain = {};    // hash -> plaintext key (from API)
+
 function parseKeyLines(raw){
   const m = {};
   if(!raw) return m;
@@ -356,42 +293,18 @@ function parseKeyLines(raw){
   return m;
 }
 async function loadData(){
-  const raw = await ghGetRaw('server/data.json');
-  data = raw ? JSON.parse(raw) : {version:2, keys:[], notices:[], broadcast:'', logs:[]};
+  const raw = await apiFetch('keys');
+  data = raw || {version:2, keys:[], notices:[], broadcast:'', logs:[]};
   if(!Array.isArray(data.keys)) data.keys=[];
   if(!Array.isArray(data.notices)) data.notices=[];
   if(!Array.isArray(data.logs)) data.logs=[];
   if(!data.broadcast) data.broadcast='';
-  bindings = parseKeyLines(await ghGetRaw('keys.txt'));
-  // Load plain keys with retry
-  for(let i=0;i<3;i++){
-    try{
-      const p = await privGetRaw();
-      plain = p ? JSON.parse(p) : {};
-      break;
-    }catch(e){
-      if(i===2){ plain = plain || {}; }
-      await new Promise(r=>setTimeout(r,300));
-    }
-  }
+  plain = {};
+  data.keys.forEach(k=>{ if(k.key) plain[k.hash||k.id] = k.key; });
 }
 async function saveData(){
   data.logs = data.logs.slice(-300);
-  await ghWrite('server/data.json', JSON.stringify(data,null,2), 'panel: update');
-  const cur = parseKeyLines(await ghGetRaw('keys.txt'));
-  const lines = ['# dndvanguard keys.txt -- <sha256>:<HWID>:<days>:<activated_unix>'];
-  data.keys.filter(k=>!k.revoked).forEach(k=>{
-    const b = cur[k.hash] || {};
-    const hw = (k.hwid ? k.hwid.toUpperCase() : (b.hwid||''));
-    const days = +k.days || 0;
-    const act = b.act || 0;
-    lines.push(`${k.hash}:${hw}:${days}:${act}`);
-  });
-  await ghWrite('keys.txt', lines.join('\n') + '\n', 'panel: keys.txt sync');
-  // Persist plain keys (only non-revoked)
-  const keep = {};
-  data.keys.filter(k=>!k.revoked).forEach(k=>{ if(plain[k.hash]) keep[k.hash]=plain[k.hash]; });
-  await privPut(JSON.stringify(keep,null,2), 'panel: plain keys sync');
+  await apiFetch('keys', { method:'PUT', body: JSON.stringify(data) });
 }
 function pushLog(msg){ data.logs.push({ts:new Date().toISOString(), msg}); }
 
@@ -496,24 +409,21 @@ async function refresh(){
 let lastClients = 0;
 async function loadClientsAsync(){
   const nowMs = Date.now();
-  if(nowMs-lastClients < 15000) return;
-  lastClients = nowMs;
-  try{
-    const tree = await ghTree();
-    const files = tree.filter(t=>t.type==='blob' && t.path.startsWith('server/hb/') && t.path.endsWith('.json'));
-    const list=[];
-    for(const f of files){ try{ list.push(JSON.parse(await ghGetRaw(f.path))); }catch(e){} }
-    list.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    const online = list.filter(c=>(Date.now()-(c.ts||0))<5*60*1000).length;
-    onlinePill.innerHTML = `<b>${online}</b> ${T('online')}`;
-    renderClients(list);
-  }catch(e){ /* ignore */ }
+   if(nowMs-lastClients < 15000) return;
+   lastClients = nowMs;
+   try{
+     const resp = await apiFetch('clients');
+     const list = Array.isArray(resp) ? resp : [];
+     list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+     const online = list.filter(c=>(Date.now()-(c.ts||0))<5*60*1000).length;
+     onlinePill.innerHTML = `<b>${online}</b> ${T('online')}`;
+     renderClients(list);
+   }catch(e){ /* ignore */ }
 }
 
 /* ================= auth / app ================= */
 function enterApp(){
   login.style.display='none'; app.style.display='block';
-  headRepo.textContent = `${CFG.owner}/${CFG.repo} @ ${CFG.branch}`;
   applyI18n();
   refresh();
   clearInterval(timer); timer=setInterval(refresh, 30000);
@@ -521,17 +431,17 @@ function enterApp(){
 function doLogin(){
   const u=inUser.value.trim(), p=inPass.value;
   if(!(u===ADMIN_USER && p===ADMIN_PASS)){ toast(T('wrongLogin'), true); return; }
-  TOKEN = embedTok();
-  if(!TOKEN){ toast(T('needToken'), true); return; }
-  fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}`, {headers:{Authorization:`Bearer ${TOKEN}`,'X-GitHub-Api-Version':'2022-11-28'}})
-    .then(r=>{ if(!r.ok) throw 0;
-      localStorage.setItem('vg_admin','1');
-      enterApp();
-    }).catch(()=>toast(T('badToken'), true));
+  // Authenticate against the API to get a session token
+  apiFetch('login', {method:'POST', body:JSON.stringify({user:u,pass:p})})
+    .then(r=>{
+      if(r && r.token){ TOKEN = r.token; localStorage.setItem('vg_token', TOKEN); localStorage.setItem('vg_admin','1'); enterApp(); }
+      else throw 0;
+    })
+    .catch(()=>toast(T('badToken'), true));
 }
 inPass.addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
 btnLogin.addEventListener('click', doLogin);
-btnLogout.addEventListener('click', ()=>{ localStorage.removeItem('vg_admin'); location.reload(); });
+btnLogout.addEventListener('click', ()=>{ localStorage.removeItem('vg_admin'); TOKEN=''; location.reload(); });
 btnLang.addEventListener('click', ()=>{ LANG = LANG==='ko'?'en':'ko'; localStorage.setItem('vg_lang',LANG); applyI18n(); });
 
 btnIssue.addEventListener('click', ()=>{
@@ -575,7 +485,7 @@ let toastT=null;
 function toast(msg, isErr){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600); }
 
 applyI18n();
-if(localStorage.getItem('vg_admin')==='1'){ const _t=embedTok(); if(_t){ TOKEN=_t; enterApp(); } }
+if(localStorage.getItem('vg_admin')==='1'){ const _tok=localStorage.getItem('vg_token'); if(_tok){ TOKEN=_tok; enterApp(); } }
 </script>
 </body>
 </html>
