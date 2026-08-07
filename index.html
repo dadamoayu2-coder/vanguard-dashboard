@@ -3,276 +3,483 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KEY CONTROL DECK</title>
+<title>VANGUARD // KEY CONTROL</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: #05060f;
-    color: #c7d6ff;
-    font-family: "Segoe UI", system-ui, sans-serif;
-    min-height: 100vh;
-    padding: 32px 16px;
-    background-image:
-      radial-gradient(600px 300px at 15% -10%, rgba(0,255,200,.07), transparent 60%),
-      radial-gradient(500px 300px at 90% 110%, rgba(255,0,200,.07), transparent 60%),
-      linear-gradient(rgba(0,255,200,.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,200,.035) 1px, transparent 1px);
-    background-size: auto, auto, 44px 44px, 44px 44px;
-  }
-  .wrap { max-width: 920px; margin: 0 auto; }
-  h1 {
-    color: #00ffc8; letter-spacing: 4px; font-size: 22px; margin-bottom: 4px;
-    text-shadow: 0 0 18px rgba(0,255,200,.6);
-  }
-  .sub { color: #5f6f96; font-size: 12px; margin-bottom: 24px; letter-spacing: 1px; }
-  .panel {
-    background: rgba(16,20,44,.85);
-    border: 1px solid rgba(0,255,200,.25);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 18px;
-    box-shadow: 0 0 24px rgba(0,255,200,.06);
-  }
-  .panel h2 {
-    color: #00ffc8; font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; font-weight: 600;
-  }
-  label { display: block; font-size: 11px; color: #5f6f96; letter-spacing: 1px; margin: 8px 0 4px; }
-  input {
-    width: 100%; background: #0a0e22; border: 1px solid #233061; color: #e6f6ff;
-    border-radius: 6px; padding: 9px 12px; font-size: 13px; font-family: Consolas, monospace;
-    outline: none; transition: border-color .15s;
-  }
-  input:focus { border-color: #00ffc8; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; }
-  .row > div { flex: 1; min-width: 200px; }
-  button {
-    background: linear-gradient(135deg, #00ffc8, #0099ff);
-    color: #04121b; border: 0; border-radius: 8px; padding: 11px 22px;
-    font-weight: 700; font-size: 13px; letter-spacing: 1px; cursor: pointer;
-    box-shadow: 0 0 16px rgba(0,255,200,.35); transition: transform .1s, box-shadow .15s;
-  }
-  button:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(0,255,200,.55); }
-  button.danger { background: linear-gradient(135deg, #ff2d95, #ff0055); color: #fff; box-shadow: 0 0 16px rgba(255,45,149,.3); }
-  button.ghost { background: transparent; border: 1px solid #33417a; color: #8fa3d9; box-shadow: none; font-weight: 600; }
-  button.small { padding: 5px 10px; font-size: 11px; border-radius: 5px; box-shadow: none; }
-  #status { font-size: 12px; color: #ff2d95; min-height: 16px; margin-top: 12px; font-family: Consolas, monospace; }
-  #status.ok { color: #00ffc8; }
-  table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
-  th { color: #5f6f96; text-align: left; padding: 6px 8px; font-size: 10px; letter-spacing: 1px; border-bottom: 1px solid #1c2646; }
-  td { padding: 8px; border-bottom: 1px solid #131b36; vertical-align: middle; }
-  td.hash { font-family: Consolas, monospace; color: #9be6ff; font-size: 11px; word-break: break-all; }
-  td.hwid { font-family: Consolas, monospace; color: #ffd23d; font-size: 11px; }
-  td.unbound { color: #5f6f96; font-style: italic; }
-  .banner {
-    background: rgba(0,255,200,.08); border: 1px dashed rgba(0,255,200,.4); color: #00ffc8;
-    border-radius: 8px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 13px;
-    margin: 10px 0; display: none; word-break: break-all;
-  }
-  .muted { color: #5f6f96; font-size: 11px; margin-top: 10px; line-height: 1.6; }
-  ::selection { background: rgba(0,255,200,.3); }
+:root{
+  --bg:#070b14; --panel:#0d1424; --panel2:#111a30; --line:#1c2a4a;
+  --cyan:#00e5ff; --mag:#ff2ec4; --green:#00ff9c; --red:#ff5470; --amber:#ffc857;
+  --txt:#cfe3ff; --dim:#6b83ad; --glow:0 0 12px rgba(0,229,255,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:radial-gradient(1200px 600px at 80% -10%, #0d1b3a 0%, var(--bg) 55%);color:var(--txt);font-family:"Segoe UI","Malgun Gothic",Arial,sans-serif;min-height:100vh}
+.wrap{max-width:1080px;margin:0 auto;padding:24px}
+h1{font-size:20px;letter-spacing:4px;color:var(--cyan);text-shadow:var(--glow)}
+h1 span{color:var(--mag)}
+.sub{color:var(--dim);font-size:12px;letter-spacing:1px;margin-top:2px}
+a{color:var(--cyan)}
+
+/* ---------- login ---------- */
+#login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:linear-gradient(160deg,var(--panel) 0%,#0a1020 100%);border:1px solid var(--line);border-radius:14px;padding:34px;width:100%;max-width:430px;box-shadow:0 0 40px rgba(0,229,255,.08)}
+.card h1{margin-bottom:6px}
+.card .sub{margin-bottom:26px}
+label{display:block;font-size:12px;letter-spacing:1px;color:var(--dim);margin:14px 0 6px}
+input{width:100%;background:#0a0f1e;border:1px solid var(--line);border-radius:8px;color:var(--txt);padding:11px 12px;font-size:14px;outline:none}
+input:focus{border-color:var(--cyan);box-shadow:var(--glow)}
+.hint{font-size:11px;color:var(--dim);margin-top:14px;line-height:1.6}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-block;background:linear-gradient(90deg,var(--cyan),#00b4d8);color:#03101c;border:none;border-radius:8px;padding:11px 18px;font-weight:700;letter-spacing:1px;cursor:pointer;font-size:14px}
+.btn:hover{filter:brightness(1.15)}
+.btn.mag{background:linear-gradient(90deg,var(--mag),#ff6be0);color:#1a0310}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:600;padding:9px 14px;font-size:13px}
+.btn.ghost:hover{color:var(--txt);border-color:var(--cyan)}
+.btn.mini{padding:6px 10px;font-size:12px;border-radius:6px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ---------- app shell ---------- */
+#app{display:none}
+header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 0;border-bottom:1px solid var(--line)}
+.pill{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--dim);letter-spacing:.5px}
+.pill b{color:var(--cyan)}
+.pill.ok b{color:var(--green)}
+.spacer{flex:1}
+nav{display:flex;gap:4px;margin:18px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+nav button{background:none;border:none;color:var(--dim);font-size:14px;letter-spacing:1px;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button.on{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:var(--glow)}
+section{display:none;animation:fade .25s}
+section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+
+/* ---------- cards / stats ---------- */
+.statgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.stat .n{font-size:30px;font-weight:800;color:var(--cyan);text-shadow:var(--glow)}
+.stat .n.mag{color:var(--mag);text-shadow:0 0 12px rgba(255,46,196,.4)}
+.stat .n.grn{color:var(--green);text-shadow:0 0 12px rgba(0,255,156,.4)}
+.stat .n.red{color:var(--red)}
+.stat .l{font-size:11px;color:var(--dim);letter-spacing:1px;margin-top:4px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.box h2{font-size:13px;letter-spacing:2px;color:var(--mag);margin-bottom:14px}
+.broadcast{background:linear-gradient(90deg,rgba(255,46,196,.12),rgba(0,229,255,.12));border:1px solid var(--mag);border-radius:10px;padding:14px;font-size:14px}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{color:var(--dim);font-size:11px;letter-spacing:1px;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid #14203a;vertical-align:middle}
+tr:hover td{background:rgba(0,229,255,.04)}
+.mono{font-family:Consolas,monospace;font-size:12px}
+.tag{font-size:11px;padding:2px 8px;border-radius:10px;letter-spacing:.5px}
+.tag.on{background:rgba(0,255,156,.14);color:var(--green);border:1px solid rgba(0,255,156,.4)}
+.tag.off{background:rgba(255,84,112,.12);color:var(--red);border:1px solid rgba(255,84,112,.4)}
+.tag.bound{background:rgba(0,229,255,.12);color:var(--cyan);border:1px solid rgba(0,229,255,.4)}
+.online{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.online.yes{background:var(--green);box-shadow:0 0 8px var(--green)}
+.online.no{background:#2a3a5a}
+
+/* ---------- forms ---------- */
+.formrow{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.formrow .f{flex:1;min-width:150px}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ---------- modal / toast ---------- */
+#overlay{display:none;position:fixed;inset:0;background:rgba(3,6,12,.8);align-items:center;justify-content:center;z-index:50}
+#overlay.on{display:flex}
+#modal{background:var(--panel2);border:1px solid var(--cyan);border-radius:14px;padding:28px;max-width:520px;width:90%;box-shadow:0 0 40px rgba(0,229,255,.25);text-align:center}
+#modal h2{color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+#keyreveal{font-family:Consolas,monospace;font-size:22px;letter-spacing:3px;color:var(--green);text-shadow:0 0 10px rgba(0,255,156,.5);background:#07120c;border:1px dashed var(--green);border-radius:10px;padding:16px;margin:16px 0;word-break:break-all}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--cyan);border-radius:10px;padding:12px 22px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;max-width:90%}
+#toast.show{opacity:1}
+#toast.err{border-color:var(--red);color:var(--red)}
+.dim{color:var(--dim);font-size:12px}
+.logline{font-family:Consolas,monospace;font-size:12px;padding:7px 0;border-bottom:1px solid #101c34}
+.logline .t{color:var(--dim);margin-right:10px}
+.empty{color:var(--dim);text-align:center;padding:30px;font-size:13px}
+.overflow{max-height:420px;overflow:auto}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#1e3054;border-radius:5px}
+::-webkit-scrollbar-track{background:transparent}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>KEY CONTROL DECK</h1>
-  <div class="sub">VANGUARD OVERRIDE &middot; HWID-LOCKED LICENSE KEY STORE &middot; GITHUB-SYNCED</div>
 
-  <div class="panel">
-    <h2>CONNECTION</h2>
-    <div class="row">
-      <div><label>OWNER</label><input id="owner" placeholder="github user"></div>
-      <div><label>REPO</label><input id="repo" placeholder="vanguard-keys"></div>
-      <div><label>BRANCH</label><input id="branch" value="main"></div>
+<div id="login">
+  <div class="card">
+    <h1>VANGUARD <span>//</span> KEY CONTROL</h1>
+    <div class="sub" data-i18n="logSub">GitHub 클라우드 키 관리자 — 어디서든 접속</div>
+    <label>GitHub owner</label>
+    <input id="inOwner" placeholder="dadamoayu2-coder">
+    <label>Repo</label>
+    <input id="inRepo" placeholder="vanguard-keys">
+    <label>Token (PAT · repo 권한)</label>
+    <input id="inToken" type="password" placeholder="ghp_...">
+    <div style="margin-top:20px">
+      <button class="btn" id="btnConnect" style="width:100%"><span data-i18n="connect">접속</span></button>
     </div>
-    <label>FINE-GRAINED PAT (Contents: Read &amp; write)</label>
-    <input id="token" type="password" placeholder="github_pat_...">
-    <div style="margin-top:14px"><button onclick="loadKeys()">CONNECT / LOAD</button></div>
-    <div id="status"></div>
-  </div>
-
-  <div class="panel">
-    <h2>ISSUE KEY</h2>
-    <div class="row">
-      <div><label>KEY (비워두면 자동 생성)</label><input id="newKey" placeholder="auto"></div>
-      <div><label>HWID LOCK (선택, 비워두면 무제한)</label><input id="newHwid" placeholder="XXXX-XXXX-XXXX-XXXX"></div>
-    </div>
-    <div id="issuedBanner" class="banner"></div>
-    <div style="margin-top:14px"><button onclick="issueKey()">ISSUE KEY</button></div>
-    <div class="muted">HWID를 넣으면 그 PC에서만 사용 가능한 하드웨어 락 키가 됩니다. 유저에게 보여줄 "YOUR HWID"를 받아 입력하세요.</div>
-  </div>
-
-  <div class="panel">
-    <h2>STORE / KEYS.TXT</h2>
-    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-      <span id="entryCount" class="muted" style="margin:0">not loaded</span>
-      <button class="ghost small" onclick="refreshKeys()">RELOAD</button>
-    </div>
-    <div style="overflow-x:auto"><table>
-      <thead><tr><th>#</th><th>SHA256 HASH</th><th>HWID</th><th style="text-align:right">ACTION</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table></div>
-    <div class="muted">관리 = GitHub 웹/모바일에서도 가능: 레포의 keys.txt 를 직접 편집해 한 줄에 <code>hash</code> 또는 <code>hash:HWID</code> 를 추가/삭제 후 Commit. 에뮬레이터가 60초 이내 자동 반영합니다.</div>
+    <div class="hint" data-i18n="logHint">토큰은 이 브라우저(localStorage)에만 저장됩니다. 페이지가 공개되어 있어도 토큰 없이는 아무것도 볼 수 없습니다.</div>
   </div>
 </div>
 
+<div id="app">
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>VANGUARD <span>//</span> KEY CONTROL</h1>
+        <div class="sub" id="headRepo">-</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="pill" id="ratePill">RATE <b>–</b></span>
+      <span class="pill" id="connPill">LINK <b>–</b></span>
+      <span class="pill ok" id="onlinePill"><b>0</b> <span data-i18n="online">온라인</span></span>
+      <button class="btn ghost mini" id="btnLang">EN</button>
+      <button class="btn ghost mini" id="btnLogout" data-i18n="logout">로그아웃</button>
+    </header>
+
+    <nav id="nav">
+      <button data-tab="dash" class="on" data-i18n="tabDash">대시보드</button>
+      <button data-tab="keys" data-i18n="tabKeys">키 관리</button>
+      <button data-tab="clients" data-i18n="tabClients">클라이언트</button>
+      <button data-tab="logs" data-i18n="tabLogs">감사 로그</button>
+      <button data-tab="settings" data-i18n="tabSettings">설정</button>
+    </nav>
+
+    <section id="tab-dash" class="on">
+      <div class="statgrid">
+        <div class="stat"><div class="n" id="sTotal">0</div><div class="l" data-i18n="sTotal">전체 키</div></div>
+        <div class="stat"><div class="n grn" id="sActive">0</div><div class="l" data-i18n="sActive">활성 키</div></div>
+        <div class="stat"><div class="n red" id="sRevoked">0</div><div class="l" data-i18n="sRevoked">회수 키</div></div>
+        <div class="stat"><div class="n" id="sHwid">0</div><div class="l" data-i18n="sHwid">HWID 바인딩</div></div>
+        <div class="stat"><div class="n mag" id="sOnline">0</div><div class="l" data-i18n="sOnline">온라인 클라이언트</div></div>
+      </div>
+      <div class="box">
+        <h2 data-i18n="broadcast">공지 / 브로드캐스트</h2>
+        <div class="broadcast" id="dashBroadcast" style="display:none"></div>
+        <div class="empty" id="dashNoBc" data-i18n="noBroadcast">설정된 브로드캐스트가 없습니다.</div>
+      </div>
+      <div class="box">
+        <h2 data-i18n="recentLogs">최근 로그</h2>
+        <div class="overflow" id="dashLogs"></div>
+      </div>
+    </section>
+
+    <section id="tab-keys">
+      <div class="box">
+        <h2 data-i18n="issueKey">키 발급</h2>
+        <div class="formrow">
+          <div class="f"><label data-i18n="keyValue">라이선스 키 (비우면 자동 생성)</label><input id="inKey" placeholder="ABC2..."></div>
+          <div class="f"><label>HWID <span class="dim" data-i18n="opt">(선택)</span></label><input id="inHwid" placeholder="900C..."></div>
+          <div class="f"><label data-i18n="note">메모</label><input id="inNote" placeholder="..."></div>
+          <button class="btn" id="btnIssue" data-i18n="issue">발급</button>
+        </div>
+      </div>
+      <div class="box">
+        <h2 data-i18n="keyList">키 목록 <span class="dim" id="keyCount"></span></h2>
+        <div class="overflow">
+          <table>
+            <thead><tr>
+              <th data-i18n="thKey">키 (SHA256)</th><th>HWID</th><th data-i18n="thNote">메모</th><th data-i18n="thCreated">생성</th><th data-i18n="thState">상태</th><th></th>
+            </tr></thead>
+            <tbody id="keyRows"></tbody>
+          </table>
+          <div class="empty" id="noKeys" data-i18n="noKeys">등록된 키가 없습니다. 키를 발급하세요.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-clients">
+      <div class="box">
+        <h2 data-i18n="clientsTitle">온라인 클라이언트 <span class="dim" data-i18n="clientsInfo">(exe가 2분마다 heartbeat 기록)</span></h2>
+        <div class="overflow">
+          <table>
+            <thead><tr><th data-i18n="thState">상태</th><th>HWID</th><th data-i18n="thRegion">리전</th><th>PUUID</th><th data-i18n="thLastSeen">마지막 접속</th></tr></thead>
+            <tbody id="clientRows"></tbody>
+          </table>
+          <div class="empty" id="noClients" data-i18n="noClients">heartbeat 없음 — exe가 아직 실행되지 않았거나 토큰이 다릅니다.</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-logs">
+      <div class="box">
+        <h2 data-i18n="logTitle">감사 로그 <span class="dim">(최근 300개)</span></h2>
+        <div class="overflow" id="logList"></div>
+      </div>
+    </section>
+
+    <section id="tab-settings">
+      <div class="box">
+        <h2 data-i18n="broadcast">브로드캐스트 메시지</h2>
+        <input id="inBc" style="margin-bottom:12px" placeholder="...">
+        <button class="btn" id="btnBc" data-i18n="saveBc">저장</button>
+      </div>
+      <div class="box">
+        <h2 data-i18n="notices">공지 목록</h2>
+        <div class="formrow" style="margin-bottom:12px">
+          <div class="f"><input id="inNotice" placeholder="..."></div>
+          <button class="btn" id="btnAddNotice" data-i18n="addNotice">추가</button>
+        </div>
+        <div id="noticeList"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div id="overlay"><div id="modal">
+  <h2 data-i18n="keyIssued">KEY ISSUED</h2>
+  <div class="sub" data-i18n="keyIssuedSub">이 키는 한 번만 표시됩니다. 복사해 두세요.</div>
+  <div id="keyreveal"></div>
+  <div class="actions" style="justify-content:center">
+    <button class="btn" id="btnCopy" data-i18n="copy">복사</button>
+    <button class="btn ghost" id="btnCloseModal" data-i18n="close">닫기</button>
+  </div>
+</div></div>
+
+<div id="toast"></div>
+
 <script>
-const STORE_KEY = "dndvanguard_keys_cfg";
-const API = "https://api.github.com";
-let cfg = { owner:"", repo:"", branch:"main", token:"" };
-let curSha = null;
-let entries = [];
+'use strict';
+/* ================= i18n ================= */
+const I = {
+  ko:{logSub:'GitHub 클라우드 키 관리자 — 어디서든 접속',connect:'접속',logHint:'토큰은 이 브라우저(localStorage)에만 저장됩니다. 페이지가 공개되어 있어도 토큰 없이는 아무것도 볼 수 없습니다.',online:'온라인',logout:'로그아웃',tabDash:'대시보드',tabKeys:'키 관리',tabClients:'클라이언트',tabLogs:'감사 로그',tabSettings:'설정',sTotal:'전체 키',sActive:'활성 키',sRevoked:'회수 키',sHwid:'HWID 바인딩',sOnline:'온라인 클라이언트',broadcast:'공지 / 브로드캐스트',noBroadcast:'설정된 브로드캐스트가 없습니다.',recentLogs:'최근 로그',issueKey:'키 발급',keyValue:'라이선스 키 (비우면 자동 생성)',opt:'(선택)',note:'메모',issue:'발급',keyList:'키 목록',thKey:'키 (SHA256)',thNote:'메모',thCreated:'생성',thState:'상태',noKeys:'등록된 키가 없습니다. 키를 발급하세요.',clientsTitle:'온라인 클라이언트',clientsInfo:'(exe가 2분마다 heartbeat 기록)',thRegion:'리전',thLastSeen:'마지막 접속',noClients:'heartbeat 없음 — exe가 아직 실행되지 않았거나 토큰이 다릅니다.',logTitle:'감사 로그',saveBc:'저장',notices:'공지 목록',addNotice:'추가',keyIssued:'KEY ISSUED',keyIssuedSub:'이 키는 한 번만 표시됩니다. 복사해 두세요.',copy:'복사',close:'닫기',revoke:'회수',bind:'바인딩',del:'삭제',save:'저장',revoked:'회수됨',active:'활성',bound:'바인딩',unbound:'미바인딩',locked:'잠김',idle:'대기',offline:'오프라인',loading:'불러오는 중...',connOk:'연결됨',connFail:'연결 실패',saved:'저장됨',issued:'발급 완료',revokedMsg:'회수됨',copied:'복사됨',err:'오류',confirmRevoke:'이 키를 회수할까요?',bindHwid:'HWID 입력 (이 PC: 복사됨)',rate:'남음',lastSeen:'방금',minAgo:'분 전',noLogs:'로그 없음',noNotices:'공지 없음'},
+  en:{logSub:'GitHub cloud key manager — works anywhere',connect:'Connect',logHint:'Token is stored only in this browser (localStorage). The page is public, but without the token nothing is visible.',online:'online',logout:'Logout',tabDash:'Dashboard',tabKeys:'Keys',tabClients:'Clients',tabLogs:'Audit Log',tabSettings:'Settings',sTotal:'Total keys',sActive:'Active keys',sRevoked:'Revoked keys',sHwid:'HWID bound',sOnline:'Online clients',broadcast:'Broadcast',noBroadcast:'No broadcast set.',recentLogs:'Recent logs',issueKey:'Issue key',keyValue:'License key (blank = auto)',opt:'(optional)',note:'Note',issue:'Issue',keyList:'Key list',thKey:'Key (SHA256)',thNote:'Note',thCreated:'Created',thState:'State',noKeys:'No keys yet. Issue one.',clientsTitle:'Online clients',clientsInfo:'(exe writes heartbeat every 2 min)',thRegion:'Region',thLastSeen:'Last seen',noClients:'No heartbeat — exe not running yet or token mismatch.',logTitle:'Audit log',saveBc:'Save',notices:'Notices',addNotice:'Add',keyIssued:'KEY ISSUED',keyIssuedSub:'Shown once only. Copy it now.',copy:'Copy',close:'Close',revoke:'Revoke',bind:'Bind',del:'Delete',save:'Save',revoked:'revoked',active:'active',bound:'bound',unbound:'unbound',locked:'locked',idle:'idle',offline:'offline',loading:'Loading...',connOk:'OK',connFail:'FAIL',saved:'saved',issued:'issued',revokedMsg:'revoked',copied:'copied',err:'Error',confirmRevoke:'Revoke this key?',bindHwid:'Enter HWID (this PC: copied)',rate:'left',lastSeen:'now',minAgo:'min ago',noLogs:'no logs',noNotices:'no notices'}
+};
+let LANG = localStorage.getItem('vg_lang') || 'ko';
+const T = (k) => (I[LANG] && I[LANG][k]) || I.en[k] || k;
+function applyI18n(){ document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); }); btnLang.textContent = LANG==='ko' ? 'EN' : 'KO'; }
+const btnLang = document.getElementById('btnLang');
 
-function $(id){ return document.getElementById(id); }
+/* ================= github client ================= */
+let C = null; // {owner, repo, token, branch}
+let data = null; // {version, keys, notices, broadcast, logs}
+let rate = null;
+let timer = null;
 
-function loadCfg(){
-  try {
-    const s = localStorage.getItem(STORE_KEY);
-    if (s) cfg = Object.assign(cfg, JSON.parse(s));
-  } catch(e){}
-  $("owner").value = cfg.owner; $("repo").value = cfg.repo;
-  $("branch").value = cfg.branch; $("token").value = cfg.token;
+function ghHeaders(accept){ const h={Authorization:`Bearer ${C.token}`,'X-GitHub-Api-Version':'2022-11-28'}; if(accept) h.Accept=accept; return h; }
+async function ghErr(res, text){ let m=text; try{ m=(JSON.parse(text)).message||m; }catch(e){} return {status:res.status, msg:m}; }
+async function ghGetMeta(path){
+  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github+json')});
+  if(res.status===404) return null;
+  const text=await res.text();
+  if(!res.ok) throw await ghErr(res,text);
+  return JSON.parse(text);
+}
+async function ghGetRaw(path){
+  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
+  if(res.status===404) return null;
+  const text=await res.text();
+  if(!res.ok) throw await ghErr(res,text);
+  return text;
+}
+async function ghWrite(path, content, msg){
+  const meta = await ghGetMeta(path);
+  const body = {message:msg, content:b64enc(content)};
+  if(meta) body.sha = meta.sha;
+  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {method:'PUT', headers:ghHeaders('application/vnd.github+json'), body:JSON.stringify(body)});
+  const text=await res.text();
+  if(!res.ok) throw await ghErr(res,text);
+  return JSON.parse(text);
+}
+async function ghTree(){
+  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/git/trees/${C.branch}?recursive=1`, {headers:ghHeaders()});
+  const text=await res.text();
+  if(!res.ok) throw await ghErr(res,text);
+  return JSON.parse(text).tree || [];
+}
+async function ghRate(){
+  const res = await fetch('https://api.github.com/rate_limit', {headers:ghHeaders()});
+  if(!res.ok) return null;
+  const j = await res.json();
+  return j.rate ? {limit:j.rate.limit, remaining:j.rate.remaining} : null;
+}
+const b64enc = (s) => btoa(unescape(encodeURIComponent(s)));
+const b64dec = (b) => decodeURIComponent(escape(atob(b.replace(/\n/g,''))));
+
+/* ================= data model ================= */
+async function loadData(){
+  const raw = await ghGetRaw('server/data.json');
+  data = raw ? JSON.parse(raw) : {version:2, keys:[], notices:[], broadcast:'', logs:[]};
+  if(!Array.isArray(data.keys)) data.keys=[];
+  if(!Array.isArray(data.notices)) data.notices=[];
+  if(!Array.isArray(data.logs)) data.logs=[];
+  if(!data.broadcast) data.broadcast='';
+}
+async function saveData(){
+  data.logs = data.logs.slice(-300);
+  await ghWrite('server/data.json', JSON.stringify(data,null,2), 'panel: update');
+  const lines = ['# dndvanguard keys.txt -- <sha256> or <sha256>:<HWID>'];
+  data.keys.filter(k=>!k.revoked).forEach(k => lines.push(k.hwid ? `${k.hash}:${k.hwid}` : k.hash));
+  await ghWrite('keys.txt', lines.join('\n') + '\n', 'panel: keys.txt sync');
+}
+function pushLog(msg){ data.logs.push({ts:new Date().toISOString(), msg}); }
+
+let q = Promise.resolve();
+function mutate(fn){
+  q = q.then(async()=>{ await loadData(); await fn(); await saveData(); toast(T('saved')); await refresh(); })
+       .catch(err=>{ toast((err&&err.msg)||err, true); });
+  return q;
+}
+async function sha256(str){
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+const CH='ABCDEFGHIJKLMNPQRSTUVWXYZ23456789';
+function genKey(){ const a=new Uint32Array(10); crypto.getRandomValues(a); return [...a].map(x=>CH[x%CH.length]).join(''); }
+const esc = (s) => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function ago(ts){
+  const d = Date.now()-ts; if(d<60000) return T('lastSeen');
+  return Math.floor(d/60000)+' '+T('minAgo');
 }
 
-function saveCfg(){
-  cfg.owner = $("owner").value.trim(); cfg.repo = $("repo").value.trim();
-  cfg.branch = $("branch").value.trim() || "main"; cfg.token = $("token").value.trim();
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); } catch(e){}
+/* ================= render ================= */
+function renderStats(){
+  const active = data.keys.filter(k=>!k.revoked);
+  sTotal.textContent=data.keys.length; sActive.textContent=active.length;
+  sRevoked.textContent=data.keys.length-active.length; sHwid.textContent=active.filter(k=>k.hwid).length;
+}
+function renderBroadcast(){
+  dashBroadcast.style.display = data.broadcast ? 'block':'none';
+  dashNoBc.style.display = data.broadcast ? 'none':'block';
+  if(data.broadcast) dashBroadcast.textContent = data.broadcast;
+}
+function renderKeyRows(){
+  const rows = data.keys.slice().reverse();
+  keyRows.innerHTML = rows.map(k=>`
+    <tr>
+      <td class="mono">${k.hash.slice(0,12)}…</td>
+      <td class="mono" style="font-size:10px">${esc(k.hwid||'-')}</td>
+      <td>${esc(k.note||'')}</td>
+      <td>${esc((k.created||'').slice(0,19).replace('T',' '))}</td>
+      <td>${k.revoked ? '<span class="tag off">'+T('revoked')+'</span>' : (k.hwid?'<span class="tag bound">'+T('bound')+'</span>':'<span class="tag on">'+T('active')+'</span>')}</td>
+      <td class="actions">
+        ${k.revoked ? '' : `<button class="btn ghost mini" data-bind="${k.hash}" data-hwid="${esc(k.hwid||'')}">HWID</button>
+        <button class="btn ghost mini mag" data-revoke="${k.hash}">${T('revoke')}</button>`}
+      </td>
+    </tr>`).join('');
+  keyCount.textContent = `(${data.keys.length})`;
+  noKeys.style.display = data.keys.length ? 'none':'block';
+}
+function renderClients(list){
+  clientRows.innerHTML = list.map(c=>`
+    <tr>
+      <td><span class="online ${c.online?'yes':'no'}"></span>${c.online?'<span class="tag on">'+T('online')+'</span>':'<span class="tag off">'+T('offline')+'</span>'} <span class="dim">${esc(c.state||'')}</span></td>
+      <td class="mono" style="font-size:10px">${esc(c.hwid||'')}</td>
+      <td>${esc(c.region||'-')}</td>
+      <td class="mono" style="font-size:11px">${esc(c.puuid||'-')}</td>
+      <td class="dim">${ago(c.ts||0)}</td>
+    </tr>`).join('');
+  noClients.style.display = list.length ? 'none':'block';
+}
+function renderLogs(){
+  const items = data.logs.slice().reverse().slice(0,200);
+  logList.innerHTML = items.length ? items.map(l=>`<div class="logline"><span class="t">${esc((l.ts||'').slice(11,19))}</span>${esc(l.msg)}</div>`).join('')
+    : `<div class="empty">${T('noLogs')||'no logs'}</div>`;
+  dashLogs.innerHTML = items.slice(0,8).map(l=>`<div class="logline"><span class="t">${esc((l.ts||'').slice(11,19))}</span>${esc(l.msg)}</div>`).join('')
+    || `<div class="empty">${T('noLogs')||'no logs'}</div>`;
+}
+function renderNotices(){
+  noticeList.innerHTML = data.notices.length ? data.notices.map((n,i)=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #101c34;padding:8px 0">
+      <span>${esc(n)}</span><button class="btn ghost mini" data-rmnotice="${i}">${T('del')}</button>
+    </div>`).join('') : `<div class="empty">${T('noNotices')||'no notices'}</div>`;
+}
+async function refresh(){
+  try{
+    await loadData();
+    rate = await ghRate();
+    ratePill.innerHTML = `RATE <b>${rate?rate.remaining:'-'}/${rate?rate.limit:'-'}</b>`;
+    connPill.innerHTML = `LINK <b>OK</b>`;
+    renderStats(); renderBroadcast(); renderKeyRows(); renderLogs(); renderNotices();
+    loadClientsAsync();
+  }catch(e){ connPill.innerHTML = `LINK <b>FAIL</b>`; }
+}
+async function loadClientsAsync(){
+  try{
+    const tree = await ghTree();
+    const files = tree.filter(t=>t.type==='blob' && t.path.startsWith('server/hb/') && t.path.endsWith('.json'));
+    const list=[];
+    for(const f of files){ try{ list.push(JSON.parse(await ghGetRaw(f.path))); }catch(e){} }
+    list.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    const online = list.filter(c=>(Date.now()-(c.ts||0))<5*60*1000).length;
+    onlinePill.innerHTML = `<b>${online}</b> ${T('online')}`;
+    renderClients(list);
+  }catch(e){ /* ignore */ }
 }
 
-function setStatus(msg, ok){
-  const s = $("status");
-  s.className = ok ? "ok" : "";
-  s.textContent = msg;
+/* ================= actions ================= */
+async function connect(){
+  const owner=inOwner.value.trim(), repo=inRepo.value.trim(), token=inToken.value.trim();
+  if(!owner||!repo||!token){ toast(T('err')+': fill all', true); return; }
+  btnConnect.disabled=true; btnConnect.textContent='...';
+  try{
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {headers:{Authorization:`Bearer ${token}`,'X-GitHub-Api-Version':'2022-11-28'}});
+    const text=await res.text();
+    if(!res.ok) throw await ghErr(res,text);
+    C={owner, repo, token, branch:(JSON.parse(text)).default_branch||'main'};
+    localStorage.setItem('vg_cfg', JSON.stringify(C));
+    await loadData();
+    login.style.display='none'; app.style.display='block';
+    headRepo.textContent = `${owner}/${repo} @ ${C.branch}`;
+    applyI18n();
+    toast(T('connOk'));
+    await refresh();
+    clearInterval(timer); timer=setInterval(refresh, 30000);
+  }catch(e){ toast(T('connFail')+': '+(e&&e.msg||e), true); }
+  btnConnect.disabled=false; btnConnect.textContent=T('connect');
 }
+function autoLogin(){
+  const saved = localStorage.getItem('vg_cfg');
+  if(!saved) return;
+  try{
+    C = JSON.parse(saved);
+    inOwner.value=C.owner; inRepo.value=C.repo; inToken.value=C.token;
+    connect();
+  }catch(e){}
+}
+function logout(){ localStorage.removeItem('vg_cfg'); location.reload(); }
 
-function b64EncodeUtf8(str){ return btoa(unescape(encodeURIComponent(str))); }
-function b64DecodeUtf8(str){ return decodeURIComponent(escape(atob(str))); }
+btnConnect.addEventListener('click', connect);
+btnLogout.addEventListener('click', logout);
+btnLang.addEventListener('click', ()=>{ LANG = LANG==='ko'?'en':'ko'; localStorage.setItem('vg_lang',LANG); applyI18n(); });
 
-async function gh(path, opts){
-  const res = await fetch(API + path, {
-    headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
-    ...opts
+btnIssue.addEventListener('click', ()=>{
+  const raw=inKey.value.trim(), hwid=inHwid.value.trim().toUpperCase(), note=inNote.value.trim();
+  mutate(async()=>{
+    const key = raw || genKey();
+    if(!/^[A-Za-z0-9._-]{4,}$/.test(key)) throw {msg:'bad key format'};
+    const hash = await sha256(key);
+    if(data.keys.some(k=>k.hash===hash && !k.revoked)) throw {msg:'key already exists'};
+    data.keys.push({hash, hwid, note, created:new Date().toISOString(), revoked:false, revoked_at:null});
+    pushLog(`KEY ISSUED ${hash.slice(0,12)} hwid=${hwid||'-'} note=${note||'-'}`);
+    keyreveal.textContent=key; overlay.classList.add('on');
+    inKey.value=''; inHwid.value=''; inNote.value='';
   });
-  const text = await res.text();
-  let body = null; try { body = JSON.parse(text); } catch(e){ body = text; }
-  if (!res.ok) throw new Error((body && body.message) || ("HTTP " + res.status));
-  return body;
-}
+});
+document.addEventListener('click', (e)=>{
+  const b=e.target.closest('[data-revoke]');
+  if(b){ const h=b.dataset.revoke; if(!confirm(T('confirmRevoke'))) return;
+    mutate(async()=>{ const k=data.keys.find(x=>x.hash===h); if(k){k.revoked=true;k.revoked_at=new Date().toISOString();} pushLog(`KEY REVOKED ${h.slice(0,12)}`); }); }
+  const g=e.target.closest('[data-bind]');
+  if(g){ const h=g.dataset.hash; const cur=g.dataset.hwid; const nw=prompt(T('bindHwid'), cur);
+    if(nw==null) return; mutate(async()=>{ const k=data.keys.find(x=>x.hash===h); if(k){k.hwid=nw.trim().toUpperCase();} pushLog(`HWID BIND ${h.slice(0,12)} -> ${nw.trim().toUpperCase()||'unbound'}`); }); }
+  const n=e.target.closest('[data-rmnotice]');
+  if(n){ const i=+n.dataset.rmnotice; mutate(async()=>{ data.notices.splice(i,1); pushLog('NOTICE REMOVED'); }); }
+});
+btnCopy.addEventListener('click', ()=>{ navigator.clipboard.writeText(keyreveal.textContent).then(()=>toast(T('copied'))); });
+btnCloseModal.addEventListener('click', ()=>overlay.classList.remove('on'));
+btnBc.addEventListener('click', ()=>mutate(async()=>{ data.broadcast=inBc.value.trim(); pushLog('BROADCAST SET'); inBc.value=''; }));
+btnAddNotice.addEventListener('click', ()=>{ const v=inNotice.value.trim(); if(!v) return; mutate(async()=>{ data.notices.push(v); pushLog('NOTICE ADDED'); inNotice.value=''; }); });
 
-async function sha256Hex(s){
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
-}
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', ()=>{
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('on'));
+  document.querySelectorAll('section').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); document.getElementById('tab-'+b.dataset.tab).classList.add('on');
+}));
 
-async function loadKeys(){
-  saveCfg();
-  if (!cfg.owner || !cfg.repo || !cfg.token){ setStatus("OWNER / REPO / TOKEN을 모두 입력하세요"); return; }
-  setStatus("connecting to GitHub ...");
-  try {
-    const data = await gh("/repos/" + cfg.owner + "/" + cfg.repo + "/contents/keys.txt?ref=" + encodeURIComponent(cfg.branch));
-    curSha = data.sha;
-    const content = b64DecodeUtf8(data.content);
-    parseEntries(content);
-    setStatus("LOADED — " + entries.length + " key(s), sha " + (curSha||"").slice(0,7), true);
-  } catch(e){
-    if (String(e.message).includes("404")) {
-      setStatus("keys.txt 가 아직 없습니다. ISSUE KEY 로 첫 키를 만들어 생성하세요.");
-      curSha = null; entries = []; render();
-    } else {
-      setStatus("ERROR: " + e.message);
-    }
-  }
-}
+let toastT=null;
+function toast(msg, isErr){ const t=toastEl; t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600); }
 
-function parseEntries(content){
-  entries = [];
-  content.split(/\r?\n/).forEach((raw, i) => {
-    const line = raw.split("#")[0].trim();
-    if (!line) return;
-    const idx = line.indexOf(":");
-    if (idx === -1) entries.push({ hash: line.toLowerCase(), hwid: "" });
-    else entries.push({ hash: line.slice(0, idx).trim().toLowerCase(), hwid: line.slice(idx+1).trim().toUpperCase() });
-  });
-  render();
-}
-
-function render(){
-  const tb = $("rows");
-  tb.innerHTML = "";
-  entries.forEach((e, i) => {
-    const tr = document.createElement("tr");
-    const hwidCell = e.hwid
-      ? '<td class="hwid">' + e.hwid + '</td>'
-      : '<td class="unbound">unbound</td>';
-    tr.innerHTML = '<td>' + (i+1) + '</td>' +
-      '<td class="hash">' + e.hash + '</td>' + hwidCell +
-      '<td style="text-align:right"><button class="ghost small" onclick="deleteEntry(' + i + ')">DELETE</button></td>';
-    tb.appendChild(tr);
-  });
-  $("entryCount").textContent = entries.length + " key(s) in store" + (curSha ? " · synced" : " · local only");
-}
-
-async function commit(newContent){
-  const body = {
-    message: "keys update",
-    content: b64EncodeUtf8(newContent)
-  };
-  if (curSha) body.sha = curSha;
-  const res = await gh("/repos/" + cfg.owner + "/" + cfg.repo + "/contents/keys.txt?ref=" + encodeURIComponent(cfg.branch), {
-    method: "PUT", body: JSON.stringify(body)
-  });
-  curSha = res.content.sha;
-}
-
-async function issueKey(){
-  saveCfg();
-  const banner = $("issuedBanner");
-  banner.style.display = "none";
-  let key = $("newKey").value.trim();
-  let hwid = $("newHwid").value.trim().toUpperCase();
-  if (key && !/^[A-Za-z0-9._-]{4,}$/.test(key)){ setStatus("KEY 형식이 잘못됐습니다 (4자 이상, 영숫자/._-) "); return; }
-  if (!key){
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    for (let i=0;i<10;i++) key += chars[Math.floor(Math.random()*chars.length)];
-  }
-  const hash = await sha256Hex(key);
-  const line = hwid ? (hash + ":" + hwid) : hash;
-
-  // 로컬 목록에도 즉시 반영 후 push
-  entries.push({ hash: hash, hwid: hwid });
-  let text = entries.map(e => e.hwid ? (e.hash + ":" + e.hwid) : e.hash).join("\n") + "\n";
-  setStatus("pushing to GitHub ...");
-  try {
-    await commit(text);
-    render();
-    $("newKey").value = key;
-    $("newHwid").value = "";
-    banner.textContent = "KEY ISSUED → 유저에게 이 키를 주세요:  " + key;
-    banner.style.display = "block";
-    setStatus("ISSUED + committed", true);
-  } catch(e){
-    entries.pop(); render();
-    setStatus("ERROR: " + e.message);
-  }
-}
-
-async function deleteEntry(i){
-  if (!curSha){ setStatus("먼저 CONNECT / LOAD 해주세요"); return; }
-  if (!confirm("DELETE key #" + (i+1) + "?")) return;
-  entries.splice(i, 1);
-  const text = entries.map(e => e.hwid ? (e.hash + ":" + e.hwid) : e.hash).join("\n") + "\n";
-  setStatus("deleting ...");
-  try {
-    await commit(text);
-    render();
-    setStatus("DELETED + committed", true);
-  } catch(e){ setStatus("ERROR: " + e.message); }
-}
-
-async function refreshKeys(){ await loadKeys(); }
-
-loadCfg();
-if (cfg.owner && cfg.token) loadKeys();
+applyI18n();
+autoLogin();
 </script>
 </body>
 </html>
