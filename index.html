@@ -268,7 +268,7 @@ async function ghGetRaw(path){
   if(res.status===404) return null;
   const text=await res.text();
   if(!res.ok) throw await ghErr(res,text);
-  return text;
+  return text.replace(/^\uFEFF/, '');
 }
 async function ghWrite(path, content, msg){
   const meta = await ghGetMeta(path);
