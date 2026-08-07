@@ -42,8 +42,10 @@ input:focus{border-color:var(--cyan);box-shadow:var(--glow)}
 header{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:18px 0;border-bottom:1px solid var(--line)}
 .pill{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--dim);letter-spacing:.5px}
 .pill b{color:var(--cyan)}
+.pill.ro b{color:var(--amber)}
 .pill.ok b{color:var(--green)}
 .spacer{flex:1}
+#roBanner{display:none;margin-top:12px;background:linear-gradient(90deg,rgba(255,200,87,.10),rgba(0,229,255,.10));border:1px solid var(--amber);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--amber)}
 nav{display:flex;gap:4px;margin:18px 0;border-bottom:1px solid var(--line);overflow-x:auto}
 nav button{background:none;border:none;color:var(--dim);font-size:14px;letter-spacing:1px;padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
 nav button.on{color:var(--cyan);border-bottom-color:var(--cyan);text-shadow:var(--glow)}
@@ -83,10 +85,12 @@ tr:hover td{background:rgba(0,229,255,.04)}
 .actions{display:flex;gap:6px;flex-wrap:wrap}
 
 /* ---------- modal / toast ---------- */
-#overlay{display:none;position:fixed;inset:0;background:rgba(3,6,12,.8);align-items:center;justify-content:center;z-index:50}
-#overlay.on{display:flex}
-#modal{background:var(--panel2);border:1px solid var(--cyan);border-radius:14px;padding:28px;max-width:520px;width:90%;box-shadow:0 0 40px rgba(0,229,255,.25);text-align:center}
-#modal h2{color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+.overlay{display:none;position:fixed;inset:0;background:rgba(3,6,12,.8);align-items:center;justify-content:center;z-index:50}
+.overlay.on{display:flex}
+#modal,#modal2{background:var(--panel2);border:1px solid var(--cyan);border-radius:14px;padding:28px;max-width:520px;width:90%;box-shadow:0 0 40px rgba(0,229,255,.25);text-align:center}
+#modal2{border-color:var(--amber);max-width:400px}
+#modal h2,#modal2 h2{color:var(--cyan);letter-spacing:2px;margin-bottom:8px}
+#modal2 h2{color:var(--amber)}
 #keyreveal{font-family:Consolas,monospace;font-size:22px;letter-spacing:3px;color:var(--green);text-shadow:0 0 10px rgba(0,255,156,.5);background:#07120c;border:1px dashed var(--green);border-radius:10px;padding:16px;margin:16px 0;word-break:break-all}
 #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--cyan);border-radius:10px;padding:12px 22px;font-size:14px;z-index:99;opacity:0;transition:opacity .25s;max-width:90%}
 #toast.show{opacity:1}
@@ -111,12 +115,13 @@ tr:hover td{background:rgba(0,229,255,.04)}
     <input id="inOwner" placeholder="dadamoayu2-coder">
     <label>Repo</label>
     <input id="inRepo" placeholder="vanguard-keys">
-    <label>Token (PAT · repo 권한)</label>
+    <label>Token <span class="dim" data-i18n="tokenOpt">(선택 — 비우면 읽기 전용)</span></label>
     <input id="inToken" type="password" placeholder="ghp_...">
-    <div style="margin-top:20px">
-      <button class="btn" id="btnConnect" style="width:100%"><span data-i18n="connect">접속</span></button>
+    <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px">
+      <button class="btn" id="btnConnect"><span data-i18n="connect">접속</span></button>
+      <button class="btn ghost" id="btnRO" data-i18n="roConnect">읽기 전용으로 접속</button>
     </div>
-    <div class="hint" data-i18n="logHint">토큰은 이 브라우저(localStorage)에만 저장됩니다. 페이지가 공개되어 있어도 토큰 없이는 아무것도 볼 수 없습니다.</div>
+    <div class="hint" data-i18n="logHint">토큰 없이도 조회는 가능합니다(읽기 전용). 관리(발급/회수/바인딩/설정)만 토큰이 필요하며, 토큰은 이 브라우저(localStorage)에만 저장됩니다.</div>
   </div>
 </div>
 
@@ -128,12 +133,13 @@ tr:hover td{background:rgba(0,229,255,.04)}
         <div class="sub" id="headRepo">-</div>
       </div>
       <span class="spacer"></span>
-      <span class="pill" id="ratePill">RATE <b>–</b></span>
-      <span class="pill" id="connPill">LINK <b>–</b></span>
+      <span class="pill" id="modePill"><b>–</b></span>
       <span class="pill ok" id="onlinePill"><b>0</b> <span data-i18n="online">온라인</span></span>
+      <button class="btn ghost mini" id="btnAdmin" style="display:none" data-i18n="enterToken">토큰 입력</button>
       <button class="btn ghost mini" id="btnLang">EN</button>
       <button class="btn ghost mini" id="btnLogout" data-i18n="logout">로그아웃</button>
     </header>
+    <div id="roBanner"><span data-i18n="readOnlyBanner">읽기 전용 모드 — 관리 작업(발급/회수/바인딩/설정)은 토큰 입력이 필요합니다.</span></div>
 
     <nav id="nav">
       <button data-tab="dash" class="on" data-i18n="tabDash">대시보드</button>
@@ -194,7 +200,7 @@ tr:hover td{background:rgba(0,229,255,.04)}
             <thead><tr><th data-i18n="thState">상태</th><th>HWID</th><th data-i18n="thRegion">리전</th><th>PUUID</th><th data-i18n="thLastSeen">마지막 접속</th></tr></thead>
             <tbody id="clientRows"></tbody>
           </table>
-          <div class="empty" id="noClients" data-i18n="noClients">heartbeat 없음 — exe가 아직 실행되지 않았거나 토큰이 다릅니다.</div>
+          <div class="empty" id="noClients" data-i18n="noClients">heartbeat 없음 — exe가 아직 실행되지 않았습니다.</div>
         </div>
       </div>
     </section>
@@ -224,7 +230,7 @@ tr:hover td{background:rgba(0,229,255,.04)}
   </div>
 </div>
 
-<div id="overlay"><div id="modal">
+<div class="overlay" id="overlay"><div id="modal">
   <h2 data-i18n="keyIssued">KEY ISSUED</h2>
   <div class="sub" data-i18n="keyIssuedSub">이 키는 한 번만 표시됩니다. 복사해 두세요.</div>
   <div id="keyreveal"></div>
@@ -234,41 +240,62 @@ tr:hover td{background:rgba(0,229,255,.04)}
   </div>
 </div></div>
 
+<div class="overlay" id="overlay2"><div id="modal2">
+  <h2>ADMIN TOKEN</h2>
+  <div class="sub" style="margin-bottom:14px" data-i18n="enterTokenSub">관리 작업을 위해 GitHub 토큰(repo 권한)을 입력하세요.</div>
+  <input id="inAdminTok" type="password" placeholder="ghp_...">
+  <div class="actions" style="justify-content:center;margin-top:16px">
+    <button class="btn" id="btnTokSave" data-i18n="ok">확인</button>
+    <button class="btn ghost" id="btnTokCancel" data-i18n="cancel">취소</button>
+  </div>
+</div></div>
+
 <div id="toast"></div>
 
 <script>
 'use strict';
 /* ================= i18n ================= */
 const I = {
-  ko:{logSub:'GitHub 클라우드 키 관리자 — 어디서든 접속',connect:'접속',logHint:'토큰은 이 브라우저(localStorage)에만 저장됩니다. 페이지가 공개되어 있어도 토큰 없이는 아무것도 볼 수 없습니다.',online:'온라인',logout:'로그아웃',tabDash:'대시보드',tabKeys:'키 관리',tabClients:'클라이언트',tabLogs:'감사 로그',tabSettings:'설정',sTotal:'전체 키',sActive:'활성 키',sRevoked:'회수 키',sHwid:'HWID 바인딩',sOnline:'온라인 클라이언트',broadcast:'공지 / 브로드캐스트',noBroadcast:'설정된 브로드캐스트가 없습니다.',recentLogs:'최근 로그',issueKey:'키 발급',keyValue:'라이선스 키 (비우면 자동 생성)',opt:'(선택)',note:'메모',issue:'발급',keyList:'키 목록',thKey:'키 (SHA256)',thNote:'메모',thCreated:'생성',thState:'상태',noKeys:'등록된 키가 없습니다. 키를 발급하세요.',clientsTitle:'온라인 클라이언트',clientsInfo:'(exe가 2분마다 heartbeat 기록)',thRegion:'리전',thLastSeen:'마지막 접속',noClients:'heartbeat 없음 — exe가 아직 실행되지 않았거나 토큰이 다릅니다.',logTitle:'감사 로그',saveBc:'저장',notices:'공지 목록',addNotice:'추가',keyIssued:'KEY ISSUED',keyIssuedSub:'이 키는 한 번만 표시됩니다. 복사해 두세요.',copy:'복사',close:'닫기',revoke:'회수',bind:'바인딩',del:'삭제',save:'저장',revoked:'회수됨',active:'활성',bound:'바인딩',unbound:'미바인딩',locked:'잠김',idle:'대기',offline:'오프라인',loading:'불러오는 중...',connOk:'연결됨',connFail:'연결 실패',saved:'저장됨',issued:'발급 완료',revokedMsg:'회수됨',copied:'복사됨',err:'오류',confirmRevoke:'이 키를 회수할까요?',bindHwid:'HWID 입력 (이 PC: 복사됨)',rate:'남음',lastSeen:'방금',minAgo:'분 전',noLogs:'로그 없음',noNotices:'공지 없음'},
-  en:{logSub:'GitHub cloud key manager — works anywhere',connect:'Connect',logHint:'Token is stored only in this browser (localStorage). The page is public, but without the token nothing is visible.',online:'online',logout:'Logout',tabDash:'Dashboard',tabKeys:'Keys',tabClients:'Clients',tabLogs:'Audit Log',tabSettings:'Settings',sTotal:'Total keys',sActive:'Active keys',sRevoked:'Revoked keys',sHwid:'HWID bound',sOnline:'Online clients',broadcast:'Broadcast',noBroadcast:'No broadcast set.',recentLogs:'Recent logs',issueKey:'Issue key',keyValue:'License key (blank = auto)',opt:'(optional)',note:'Note',issue:'Issue',keyList:'Key list',thKey:'Key (SHA256)',thNote:'Note',thCreated:'Created',thState:'State',noKeys:'No keys yet. Issue one.',clientsTitle:'Online clients',clientsInfo:'(exe writes heartbeat every 2 min)',thRegion:'Region',thLastSeen:'Last seen',noClients:'No heartbeat — exe not running yet or token mismatch.',logTitle:'Audit log',saveBc:'Save',notices:'Notices',addNotice:'Add',keyIssued:'KEY ISSUED',keyIssuedSub:'Shown once only. Copy it now.',copy:'Copy',close:'Close',revoke:'Revoke',bind:'Bind',del:'Delete',save:'Save',revoked:'revoked',active:'active',bound:'bound',unbound:'unbound',locked:'locked',idle:'idle',offline:'offline',loading:'Loading...',connOk:'OK',connFail:'FAIL',saved:'saved',issued:'issued',revokedMsg:'revoked',copied:'copied',err:'Error',confirmRevoke:'Revoke this key?',bindHwid:'Enter HWID (this PC: copied)',rate:'left',lastSeen:'now',minAgo:'min ago',noLogs:'no logs',noNotices:'no notices'}
+  ko:{logSub:'GitHub 클라우드 키 관리자 — 어디서든 접속',connect:'접속',roConnect:'읽기 전용으로 접속',tokenOpt:'(선택 — 비우면 읽기 전용)',logHint:'토큰 없이도 조회는 가능합니다(읽기 전용). 관리(발급/회수/바인딩/설정)만 토큰이 필요하며, 토큰은 이 브라우저(localStorage)에만 저장됩니다.',online:'온라인',logout:'로그아웃',enterToken:'토큰 입력',enterTokenSub:'관리 작업을 위해 GitHub 토큰(repo 권한)을 입력하세요.',readOnlyBanner:'읽기 전용 모드 — 관리 작업(발급/회수/바인딩/설정)은 토큰 입력이 필요합니다.',tabDash:'대시보드',tabKeys:'키 관리',tabClients:'클라이언트',tabLogs:'감사 로그',tabSettings:'설정',sTotal:'전체 키',sActive:'활성 키',sRevoked:'회수 키',sHwid:'HWID 바인딩',sOnline:'온라인 클라이언트',broadcast:'공지 / 브로드캐스트',noBroadcast:'설정된 브로드캐스트가 없습니다.',recentLogs:'최근 로그',issueKey:'키 발급',keyValue:'라이선스 키 (비우면 자동 생성)',opt:'(선택)',note:'메모',issue:'발급',keyList:'키 목록',thKey:'키 (SHA256)',thNote:'메모',thCreated:'생성',thState:'상태',noKeys:'등록된 키가 없습니다. 키를 발급하세요.',clientsTitle:'온라인 클라이언트',clientsInfo:'(exe가 2분마다 heartbeat 기록)',thRegion:'리전',thLastSeen:'마지막 접속',noClients:'heartbeat 없음 — exe가 아직 실행되지 않았습니다.',logTitle:'감사 로그',saveBc:'저장',notices:'공지 목록',addNotice:'추가',keyIssued:'KEY ISSUED',keyIssuedSub:'이 키는 한 번만 표시됩니다. 복사해 두세요.',copy:'복사',close:'닫기',revoke:'회수',bind:'바인딩',del:'삭제',save:'저장',revoked:'회수됨',active:'활성',bound:'바인딩',unbound:'미바인딩',locked:'잠김',idle:'대기',offline:'오프라인',loading:'불러오는 중...',connOk:'연결됨',connFail:'연결 실패',saved:'저장됨',issued:'발급 완료',revokedMsg:'회수됨',copied:'복사됨',err:'오류',confirmRevoke:'이 키를 회수할까요?',bindHwid:'HWID 입력 (이 PC: 복사됨)',lastSeen:'방금',minAgo:'분 전',noLogs:'로그 없음',noNotices:'공지 없음',modeAdmin:'ADMIN',modeRO:'RO',badToken:'토큰 오류',needToken:'토큰이 필요합니다.',ok:'확인',cancel:'취소'},
+  en:{logSub:'GitHub cloud key manager — works anywhere',connect:'Connect',roConnect:'Connect read-only',tokenOpt:'(optional — blank = read-only)',logHint:'Viewing works without a token (read-only). Only admin actions (issue/revoke/bind/settings) need a token, stored only in this browser (localStorage).',online:'online',logout:'Logout',enterToken:'Enter token',enterTokenSub:'Enter a GitHub token (repo scope) for admin actions.',readOnlyBanner:'Read-only mode — admin actions (issue/revoke/bind/settings) require a token.',tabDash:'Dashboard',tabKeys:'Keys',tabClients:'Clients',tabLogs:'Audit Log',tabSettings:'Settings',sTotal:'Total keys',sActive:'Active keys',sRevoked:'Revoked keys',sHwid:'HWID bound',sOnline:'Online clients',broadcast:'Broadcast',noBroadcast:'No broadcast set.',recentLogs:'Recent logs',issueKey:'Issue key',keyValue:'License key (blank = auto)',opt:'(optional)',note:'Note',issue:'Issue',keyList:'Key list',thKey:'Key (SHA256)',thNote:'Note',thCreated:'Created',thState:'State',noKeys:'No keys yet. Issue one.',clientsTitle:'Online clients',clientsInfo:'(exe writes heartbeat every 2 min)',thRegion:'Region',thLastSeen:'Last seen',noClients:'No heartbeat — exe not running yet.',logTitle:'Audit log',saveBc:'Save',notices:'Notices',addNotice:'Add',keyIssued:'KEY ISSUED',keyIssuedSub:'Shown once only. Copy it now.',copy:'Copy',close:'Close',revoke:'Revoke',bind:'Bind',del:'Delete',save:'Save',revoked:'revoked',active:'active',bound:'bound',unbound:'unbound',locked:'locked',idle:'idle',offline:'offline',loading:'Loading...',connOk:'OK',connFail:'FAIL',saved:'saved',issued:'issued',revokedMsg:'revoked',copied:'copied',err:'Error',confirmRevoke:'Revoke this key?',bindHwid:'Enter HWID',lastSeen:'now',minAgo:'min ago',noLogs:'no logs',noNotices:'no notices',modeAdmin:'ADMIN',modeRO:'RO',badToken:'bad token',needToken:'token required',ok:'OK',cancel:'Cancel'}
 };
 let LANG = localStorage.getItem('vg_lang') || 'ko';
 const T = (k) => (I[LANG] && I[LANG][k]) || I.en[k] || k;
-function applyI18n(){ document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); }); btnLang.textContent = LANG==='ko' ? 'EN' : 'KO'; }
 const btnLang = document.getElementById('btnLang');
+function applyI18n(){ document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n); }); btnLang.textContent = LANG==='ko' ? 'EN' : 'KO'; }
 
 /* ================= github client ================= */
 let C = null; // {owner, repo, token, branch}
-let data = null; // {version, keys, notices, broadcast, logs}
-let rate = null;
+let data = null;
 let timer = null;
 
 function ghHeaders(accept){ const h={Authorization:`Bearer ${C.token}`,'X-GitHub-Api-Version':'2022-11-28'}; if(accept) h.Accept=accept; return h; }
 async function ghErr(res, text){ let m=text; try{ m=(JSON.parse(text)).message||m; }catch(e){} return {status:res.status, msg:m}; }
+
+// read: token -> api.github.com (with auth), no token -> raw.githubusercontent.com (public, no rate limit)
+async function ghGetRaw(path){
+  let res, text;
+  if(C.token){
+    res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
+    if(res.status===404) return null;
+    text=await res.text();
+    if(!res.ok) throw await ghErr(res,text);
+  } else {
+    res = await fetch(`https://raw.githubusercontent.com/${C.owner}/${C.repo}/${C.branch||'main'}/${path}`);
+    if(res.status===404) return null;
+    text=await res.text();
+    if(!res.ok) throw {status:res.status, msg:text.slice(0,200)};
+  }
+  return text.replace(/^\uFEFF/, '');
+}
+// write paths always need a token
 async function ghGetMeta(path){
+  if(!C.token) throw {msg:T('needToken')};
   const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github+json')});
   if(res.status===404) return null;
   const text=await res.text();
   if(!res.ok) throw await ghErr(res,text);
   return JSON.parse(text);
-}
-async function ghGetRaw(path){
-  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
-  if(res.status===404) return null;
-  const text=await res.text();
-  if(!res.ok) throw await ghErr(res,text);
-  return text.replace(/^\uFEFF/, '');
 }
 async function ghWrite(path, content, msg){
   const meta = await ghGetMeta(path);
@@ -280,19 +307,13 @@ async function ghWrite(path, content, msg){
   return JSON.parse(text);
 }
 async function ghTree(){
-  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/git/trees/${C.branch}?recursive=1`, {headers:ghHeaders()});
+  const h = C.token ? ghHeaders() : {'X-GitHub-Api-Version':'2022-11-28'};
+  const res = await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}/git/trees/${C.branch}?recursive=1`, {headers:h});
   const text=await res.text();
   if(!res.ok) throw await ghErr(res,text);
   return JSON.parse(text).tree || [];
 }
-async function ghRate(){
-  const res = await fetch('https://api.github.com/rate_limit', {headers:ghHeaders()});
-  if(!res.ok) return null;
-  const j = await res.json();
-  return j.rate ? {limit:j.rate.limit, remaining:j.rate.remaining} : null;
-}
 const b64enc = (s) => btoa(unescape(encodeURIComponent(s)));
-const b64dec = (b) => decodeURIComponent(escape(atob(b.replace(/\n/g,''))));
 
 /* ================= data model ================= */
 async function loadData(){
@@ -313,9 +334,32 @@ async function saveData(){
 function pushLog(msg){ data.logs.push({ts:new Date().toISOString(), msg}); }
 
 let q = Promise.resolve();
+async function requireAdmin(){
+  if(C.token) return true;
+  return new Promise(resolve=>{
+    inAdminTok.value=''; overlay2.classList.add('on'); inAdminTok.focus();
+    const done=(ok)=>{ overlay2.classList.remove('on'); btnTokSave.onclick=null; btnTokCancel.onclick=null; resolve(ok); };
+    btnTokSave.onclick=async ()=>{
+      const t=inAdminTok.value.trim();
+      if(!t) return;
+      try{
+        const res=await fetch(`https://api.github.com/repos/${C.owner}/${C.repo}`, {headers:{Authorization:`Bearer ${t}`,'X-GitHub-Api-Version':'2022-11-28'}});
+        if(!res.ok) throw {msg:T('badToken')};
+        C.token=t;
+        localStorage.setItem('vg_cfg', JSON.stringify(C));
+        updateModeUI();
+        toast(T('connOk'));
+        done(true);
+      }catch(e){ toast(T('err')+': '+(e.msg||e), true); }
+    };
+    btnTokCancel.onclick=()=>done(false);
+  });
+}
 function mutate(fn){
-  q = q.then(async()=>{ await loadData(); await fn(); await saveData(); toast(T('saved')); await refresh(); })
-       .catch(err=>{ toast((err&&err.msg)||err, true); });
+  q = q.then(async()=>{
+    if(!(await requireAdmin())) return;
+    await loadData(); await fn(); await saveData(); toast(T('saved')); await refresh();
+  }).catch(err=>{ toast((err&&err.msg)||err, true); });
   return q;
 }
 async function sha256(str){
@@ -372,27 +416,36 @@ function renderClients(list){
 function renderLogs(){
   const items = data.logs.slice().reverse().slice(0,200);
   logList.innerHTML = items.length ? items.map(l=>`<div class="logline"><span class="t">${esc((l.ts||'').slice(11,19))}</span>${esc(l.msg)}</div>`).join('')
-    : `<div class="empty">${T('noLogs')||'no logs'}</div>`;
+    : `<div class="empty">${T('noLogs')}</div>`;
   dashLogs.innerHTML = items.slice(0,8).map(l=>`<div class="logline"><span class="t">${esc((l.ts||'').slice(11,19))}</span>${esc(l.msg)}</div>`).join('')
-    || `<div class="empty">${T('noLogs')||'no logs'}</div>`;
+    || `<div class="empty">${T('noLogs')}</div>`;
 }
 function renderNotices(){
   noticeList.innerHTML = data.notices.length ? data.notices.map((n,i)=>`
     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #101c34;padding:8px 0">
       <span>${esc(n)}</span><button class="btn ghost mini" data-rmnotice="${i}">${T('del')}</button>
-    </div>`).join('') : `<div class="empty">${T('noNotices')||'no notices'}</div>`;
+    </div>`).join('') : `<div class="empty">${T('noNotices')}</div>`;
 }
+function updateModeUI(){
+  const ro = !C.token;
+  modePill.innerHTML = ro ? `MODE <b>${T('modeRO')}</b>` : `MODE <b>${T('modeAdmin')}</b>`;
+  modePill.classList.toggle('ro', ro);
+  btnAdmin.style.display = ro ? '' : 'none';
+  roBanner.style.display = ro ? 'block' : 'none';
+}
+let lastClients = 0;
 async function refresh(){
   try{
     await loadData();
-    rate = await ghRate();
-    ratePill.innerHTML = `RATE <b>${rate?rate.remaining:'-'}/${rate?rate.limit:'-'}</b>`;
-    connPill.innerHTML = `LINK <b>OK</b>`;
+    updateModeUI();
     renderStats(); renderBroadcast(); renderKeyRows(); renderLogs(); renderNotices();
     loadClientsAsync();
-  }catch(e){ connPill.innerHTML = `LINK <b>FAIL</b>`; }
+  }catch(e){ /* keep last state */ }
 }
 async function loadClientsAsync(){
+  const nowMs = Date.now();
+  if(!C.token && nowMs-lastClients < 300000) return; // read-only: tree API is rate-limited(60/hr) -> 5min
+  lastClients = nowMs;
   try{
     const tree = await ghTree();
     const files = tree.filter(t=>t.type==='blob' && t.path.startsWith('server/hb/') && t.path.endsWith('.json'));
@@ -406,12 +459,14 @@ async function loadClientsAsync(){
 }
 
 /* ================= actions ================= */
-async function connect(){
-  const owner=inOwner.value.trim(), repo=inRepo.value.trim(), token=inToken.value.trim();
-  if(!owner||!repo||!token){ toast(T('err')+': fill all', true); return; }
+async function connect(tokenOverride){
+  const owner=inOwner.value.trim(), repo=inRepo.value.trim();
+  const token=(tokenOverride===undefined ? inToken.value.trim() : tokenOverride);
+  if(!owner||!repo){ toast(T('err')+': owner/repo', true); return; }
   btnConnect.disabled=true; btnConnect.textContent='...';
   try{
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {headers:{Authorization:`Bearer ${token}`,'X-GitHub-Api-Version':'2022-11-28'}});
+    const h = token ? {Authorization:`Bearer ${token}`,'X-GitHub-Api-Version':'2022-11-28'} : {'X-GitHub-Api-Version':'2022-11-28'};
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {headers:h});
     const text=await res.text();
     if(!res.ok) throw await ghErr(res,text);
     C={owner, repo, token, branch:(JSON.parse(text)).default_branch||'main'};
@@ -419,6 +474,7 @@ async function connect(){
     await loadData();
     login.style.display='none'; app.style.display='block';
     headRepo.textContent = `${owner}/${repo} @ ${C.branch}`;
+    updateModeUI();
     applyI18n();
     toast(T('connOk'));
     await refresh();
@@ -430,15 +486,17 @@ function autoLogin(){
   const saved = localStorage.getItem('vg_cfg');
   if(!saved) return;
   try{
-    C = JSON.parse(saved);
-    inOwner.value=C.owner; inRepo.value=C.repo; inToken.value=C.token;
-    connect();
+    const c = JSON.parse(saved);
+    inOwner.value=c.owner; inRepo.value=c.repo; inToken.value=c.token||'';
+    connect(c.token||'');
   }catch(e){}
 }
 function logout(){ localStorage.removeItem('vg_cfg'); location.reload(); }
 
-btnConnect.addEventListener('click', connect);
+btnConnect.addEventListener('click', ()=>connect());
+btnRO.addEventListener('click', ()=>connect(''));
 btnLogout.addEventListener('click', logout);
+btnAdmin.addEventListener('click', ()=>requireAdmin());
 btnLang.addEventListener('click', ()=>{ LANG = LANG==='ko'?'en':'ko'; localStorage.setItem('vg_lang',LANG); applyI18n(); });
 
 btnIssue.addEventListener('click', ()=>{
