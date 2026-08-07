@@ -372,10 +372,17 @@ async function loadData(){
   if(!Array.isArray(data.logs)) data.logs=[];
   if(!data.broadcast) data.broadcast='';
   bindings = parseKeyLines(await ghGetRaw('keys.txt'));
-  try{
-    const p = await privGetRaw();
-    plain = p ? JSON.parse(p) : {};
-  }catch(e){ plain = plain || {}; }
+  // Load plain keys with retry
+  for(let i=0;i<3;i++){
+    try{
+      const p = await privGetRaw();
+      plain = p ? JSON.parse(p) : {};
+      break;
+    }catch(e){
+      if(i===2){ plain = plain || {}; }
+      await new Promise(r=>setTimeout(r,300));
+    }
+  }
 }
 async function saveData(){
   data.logs = data.logs.slice(-300);
@@ -390,6 +397,7 @@ async function saveData(){
     lines.push(`${k.hash}:${hw}:${days}:${act}`);
   });
   await ghWrite('keys.txt', lines.join('\n') + '\n', 'panel: keys.txt sync');
+  // Persist plain keys (only non-revoked)
   const keep = {};
   data.keys.filter(k=>!k.revoked).forEach(k=>{ if(plain[k.hash]) keep[k.hash]=plain[k.hash]; });
   await privPut(JSON.stringify(keep,null,2), 'panel: plain keys sync');
