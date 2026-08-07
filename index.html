@@ -285,7 +285,47 @@ let data = null;
 let timer = null;
 
 function ghHeaders(accept){ const h={Authorization:`Bearer ${TOKEN}`,'X-GitHub-Api-Version':'2022-11-28'}; if(accept) h.Accept=accept; return h; }
+function b64enc(s){ return btoa(unescape(encodeURIComponent(s))); }
 async function ghErr(res, text){ let m=text; try{ m=(JSON.parse(text)).message||m; }catch(e){} return {status:res.status, msg:m}; }
+function b64dec(s){ return decodeURIComponent(escape(atob(s))); }
+
+// Git database API: blob -> tree -> commit -> ref. Atomic, no file sha needed.
+async function gitWrite(owner, repo, branch, repoPath, content, message, retries=4){
+  const BH=`https://api.github.com/repos/${owner}/${repo}`;
+  const blob = await gitGet(`${BH}/git/blobs`, {content: b64enc(content), encoding:'utf-8'});
+  const blobSha = blob.sha;
+  for(let attempt=0; attempt<retries; attempt++){
+    try{
+      const ref = await gitGet(`${BH}/git/ref/heads/${branch}`);
+      const commitSha = ref.object.sha;
+      const commit = await gitGet(`${BH}/commits/${commitSha}`);
+      const baseTree = commit.commit.tree.sha;
+      const tree = await gitGet(`${BH}/git/trees`, {base_tree: baseTree, tree:[{path:repoPath, mode:'100644', type:'blob', sha:blobSha}]});
+      const newCommit = await gitGet(`${BH}/git/commits`, {message:message, tree:tree.sha, parents:[commitSha]});
+      const res = await fetch(`${BH}/git/refs/heads/${branch}`, {method:'PATCH', headers:ghHeaders('application/vnd.github+json'), body:JSON.stringify({sha:newCommit.sha, force:false})});
+      if(res.ok) return;
+      if(res.status===409){ await new Promise(r=>setTimeout(r,800)); continue; }
+      const t=await res.text(); throw {status:res.status, msg:t};
+    }catch(e){
+      if(attempt===retries-1) throw e;
+      await new Promise(r=>setTimeout(r,800));
+    }
+  }
+  throw {status:0, msg:'git write retries exhausted'};
+}
+
+// GET or POST with JSON
+async function gitGet(url, bodyObj=null){
+  const opts={headers:ghHeaders('application/vnd.github+json')};
+  if(bodyObj){ opts.method='POST'; opts.body=JSON.stringify(bodyObj); }
+  const res=await fetch(url, opts);
+  const t=await res.text();
+  if(!res.ok){ try{ throw {status:res.status, msg:(JSON.parse(t)).message||t}; }catch(e2){ throw {status:res.status, msg:t}; } }
+  return t ? JSON.parse(t) : {};
+}
+
+async function ghWrite(path, content, msg){ return await gitWrite(CFG.owner, CFG.repo, CFG.branch, path, content, msg); }
+async function privPut(content, msg){ return await gitWrite(PRIV.owner, PRIV.repo, PRIV.branch, PRIV.path, content, msg); }
 async function ghGetRaw(path){
   const res = await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
   if(res.status===404) return null;
@@ -293,62 +333,13 @@ async function ghGetRaw(path){
   if(!res.ok) throw await ghErr(res,text);
   return text.replace(/^\uFEFF/, '');
 }
-async function ghGetMeta(path){
-  const res = await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`, {headers:ghHeaders('application/vnd.github+json')});
-  if(res.status===404) return null;
-  const text=await res.text();
-  if(!res.ok) throw await ghErr(res,text);
-  return JSON.parse(text);
-}
-async function ghWrite(path, content, msg){
-  for(let i=0;i<3;i++){
-    let meta=null;
-    try { meta = await ghGetMeta(path); }
-    catch(e){ if(i===2) throw e; await new Promise(r=>setTimeout(r,500)); continue; }
-    const body = {message:msg, content:b64enc(content)};
-    if(meta) body.sha = meta.sha;
-    const res = await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/contents/${path}`, {method:'PUT', headers:ghHeaders('application/vnd.github+json'), body:JSON.stringify(body)});
-    const text=await res.text();
-    if(res.ok) return JSON.parse(text);
-    if(res.status===409 || res.status===422){ await new Promise(r=>setTimeout(r,500)); continue; }
-    throw await ghErr(res,text);
-  }
-  throw new Error('write failed after retries: '+path);
-}
-async function ghTree(){
-  const res = await fetch(`https://api.github.com/repos/${CFG.owner}/${CFG.repo}/git/trees/${CFG.branch}?recursive=1`, {headers:ghHeaders()});
-  const text=await res.text();
-  if(!res.ok) throw await ghErr(res,text);
-  return JSON.parse(text).tree || [];
-}
-const b64enc = (s) => btoa(unescape(encodeURIComponent(s)));
 
-/* ---- private repo (plaintext keys) ---- */
 async function privGetRaw(){
   const res = await fetch(`https://api.github.com/repos/${PRIV.owner}/${PRIV.repo}/contents/${PRIV.path}`, {headers:ghHeaders('application/vnd.github.raw+json')});
   if(res.status===404) return null;
   const text=await res.text();
   if(!res.ok) throw await ghErr(res,text);
   return text.replace(/^\uFEFF/, '');
-}
-async function privPut(content, msg){
-  for(let i=0;i<3;i++){
-    let sha=null;
-    try {
-      const metaRes = await fetch(`https://api.github.com/repos/${PRIV.owner}/${PRIV.repo}/contents/${PRIV.path}`, {headers:ghHeaders('application/vnd.github+json')});
-      if(metaRes.status===404) sha=null;
-      else if(!metaRes.ok) throw await ghErr(metaRes, await metaRes.text());
-      else sha=(await metaRes.json()).sha;
-    } catch(e){ if(i===2) throw e; await new Promise(r=>setTimeout(r,500)); continue; }
-    const body = {message:msg, content:b64enc(content)};
-    if(sha) body.sha = sha;
-    const res = await fetch(`https://api.github.com/repos/${PRIV.owner}/${PRIV.repo}/contents/${PRIV.path}`, {method:'PUT', headers:ghHeaders('application/vnd.github+json'), body:JSON.stringify(body)});
-    const text=await res.text();
-    if(res.ok) return JSON.parse(text);
-    if(res.status===409 || res.status===422){ await new Promise(r=>setTimeout(r,500)); continue; }
-    throw await ghErr(res,text);
-  }
-  throw new Error('private repo write failed after retries');
 }
 
 /* ================= data model ================= */
