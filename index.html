@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KEY CONTROL DECK</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #05060f;
+    color: #c7d6ff;
+    font-family: "Segoe UI", system-ui, sans-serif;
+    min-height: 100vh;
+    padding: 32px 16px;
+    background-image:
+      radial-gradient(600px 300px at 15% -10%, rgba(0,255,200,.07), transparent 60%),
+      radial-gradient(500px 300px at 90% 110%, rgba(255,0,200,.07), transparent 60%),
+      linear-gradient(rgba(0,255,200,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,200,.035) 1px, transparent 1px);
+    background-size: auto, auto, 44px 44px, 44px 44px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; }
+  h1 {
+    color: #00ffc8; letter-spacing: 4px; font-size: 22px; margin-bottom: 4px;
+    text-shadow: 0 0 18px rgba(0,255,200,.6);
+  }
+  .sub { color: #5f6f96; font-size: 12px; margin-bottom: 24px; letter-spacing: 1px; }
+  .panel {
+    background: rgba(16,20,44,.85);
+    border: 1px solid rgba(0,255,200,.25);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 24px rgba(0,255,200,.06);
+  }
+  .panel h2 {
+    color: #00ffc8; font-size: 13px; letter-spacing: 2px; margin-bottom: 14px; font-weight: 600;
+  }
+  label { display: block; font-size: 11px; color: #5f6f96; letter-spacing: 1px; margin: 8px 0 4px; }
+  input {
+    width: 100%; background: #0a0e22; border: 1px solid #233061; color: #e6f6ff;
+    border-radius: 6px; padding: 9px 12px; font-size: 13px; font-family: Consolas, monospace;
+    outline: none; transition: border-color .15s;
+  }
+  input:focus { border-color: #00ffc8; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 200px; }
+  button {
+    background: linear-gradient(135deg, #00ffc8, #0099ff);
+    color: #04121b; border: 0; border-radius: 8px; padding: 11px 22px;
+    font-weight: 700; font-size: 13px; letter-spacing: 1px; cursor: pointer;
+    box-shadow: 0 0 16px rgba(0,255,200,.35); transition: transform .1s, box-shadow .15s;
+  }
+  button:hover { transform: translateY(-1px); box-shadow: 0 0 22px rgba(0,255,200,.55); }
+  button.danger { background: linear-gradient(135deg, #ff2d95, #ff0055); color: #fff; box-shadow: 0 0 16px rgba(255,45,149,.3); }
+  button.ghost { background: transparent; border: 1px solid #33417a; color: #8fa3d9; box-shadow: none; font-weight: 600; }
+  button.small { padding: 5px 10px; font-size: 11px; border-radius: 5px; box-shadow: none; }
+  #status { font-size: 12px; color: #ff2d95; min-height: 16px; margin-top: 12px; font-family: Consolas, monospace; }
+  #status.ok { color: #00ffc8; }
+  table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 12px; }
+  th { color: #5f6f96; text-align: left; padding: 6px 8px; font-size: 10px; letter-spacing: 1px; border-bottom: 1px solid #1c2646; }
+  td { padding: 8px; border-bottom: 1px solid #131b36; vertical-align: middle; }
+  td.hash { font-family: Consolas, monospace; color: #9be6ff; font-size: 11px; word-break: break-all; }
+  td.hwid { font-family: Consolas, monospace; color: #ffd23d; font-size: 11px; }
+  td.unbound { color: #5f6f96; font-style: italic; }
+  .banner {
+    background: rgba(0,255,200,.08); border: 1px dashed rgba(0,255,200,.4); color: #00ffc8;
+    border-radius: 8px; padding: 12px 14px; font-family: Consolas, monospace; font-size: 13px;
+    margin: 10px 0; display: none; word-break: break-all;
+  }
+  .muted { color: #5f6f96; font-size: 11px; margin-top: 10px; line-height: 1.6; }
+  ::selection { background: rgba(0,255,200,.3); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>KEY CONTROL DECK</h1>
+  <div class="sub">VANGUARD OVERRIDE &middot; HWID-LOCKED LICENSE KEY STORE &middot; GITHUB-SYNCED</div>
+
+  <div class="panel">
+    <h2>CONNECTION</h2>
+    <div class="row">
+      <div><label>OWNER</label><input id="owner" placeholder="github user"></div>
+      <div><label>REPO</label><input id="repo" placeholder="vanguard-keys"></div>
+      <div><label>BRANCH</label><input id="branch" value="main"></div>
+    </div>
+    <label>FINE-GRAINED PAT (Contents: Read &amp; write)</label>
+    <input id="token" type="password" placeholder="github_pat_...">
+    <div style="margin-top:14px"><button onclick="loadKeys()">CONNECT / LOAD</button></div>
+    <div id="status"></div>
+  </div>
+
+  <div class="panel">
+    <h2>ISSUE KEY</h2>
+    <div class="row">
+      <div><label>KEY (비워두면 자동 생성)</label><input id="newKey" placeholder="auto"></div>
+      <div><label>HWID LOCK (선택, 비워두면 무제한)</label><input id="newHwid" placeholder="XXXX-XXXX-XXXX-XXXX"></div>
+    </div>
+    <div id="issuedBanner" class="banner"></div>
+    <div style="margin-top:14px"><button onclick="issueKey()">ISSUE KEY</button></div>
+    <div class="muted">HWID를 넣으면 그 PC에서만 사용 가능한 하드웨어 락 키가 됩니다. 유저에게 보여줄 "YOUR HWID"를 받아 입력하세요.</div>
+  </div>
+
+  <div class="panel">
+    <h2>STORE / KEYS.TXT</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <span id="entryCount" class="muted" style="margin:0">not loaded</span>
+      <button class="ghost small" onclick="refreshKeys()">RELOAD</button>
+    </div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>#</th><th>SHA256 HASH</th><th>HWID</th><th style="text-align:right">ACTION</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table></div>
+    <div class="muted">관리 = GitHub 웹/모바일에서도 가능: 레포의 keys.txt 를 직접 편집해 한 줄에 <code>hash</code> 또는 <code>hash:HWID</code> 를 추가/삭제 후 Commit. 에뮬레이터가 60초 이내 자동 반영합니다.</div>
+  </div>
+</div>
+
+<script>
+const STORE_KEY = "dndvanguard_keys_cfg";
+const API = "https://api.github.com";
+let cfg = { owner:"", repo:"", branch:"main", token:"" };
+let curSha = null;
+let entries = [];
+
+function $(id){ return document.getElementById(id); }
+
+function loadCfg(){
+  try {
+    const s = localStorage.getItem(STORE_KEY);
+    if (s) cfg = Object.assign(cfg, JSON.parse(s));
+  } catch(e){}
+  $("owner").value = cfg.owner; $("repo").value = cfg.repo;
+  $("branch").value = cfg.branch; $("token").value = cfg.token;
+}
+
+function saveCfg(){
+  cfg.owner = $("owner").value.trim(); cfg.repo = $("repo").value.trim();
+  cfg.branch = $("branch").value.trim() || "main"; cfg.token = $("token").value.trim();
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(cfg)); } catch(e){}
+}
+
+function setStatus(msg, ok){
+  const s = $("status");
+  s.className = ok ? "ok" : "";
+  s.textContent = msg;
+}
+
+function b64EncodeUtf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUtf8(str){ return decodeURIComponent(escape(atob(str))); }
+
+async function gh(path, opts){
+  const res = await fetch(API + path, {
+    headers: { "Authorization": "Bearer " + cfg.token, "Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28" },
+    ...opts
+  });
+  const text = await res.text();
+  let body = null; try { body = JSON.parse(text); } catch(e){ body = text; }
+  if (!res.ok) throw new Error((body && body.message) || ("HTTP " + res.status));
+  return body;
+}
+
+async function sha256Hex(s){
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function loadKeys(){
+  saveCfg();
+  if (!cfg.owner || !cfg.repo || !cfg.token){ setStatus("OWNER / REPO / TOKEN을 모두 입력하세요"); return; }
+  setStatus("connecting to GitHub ...");
+  try {
+    const data = await gh("/repos/" + cfg.owner + "/" + cfg.repo + "/contents/keys.txt?ref=" + encodeURIComponent(cfg.branch));
+    curSha = data.sha;
+    const content = b64DecodeUtf8(data.content);
+    parseEntries(content);
+    setStatus("LOADED — " + entries.length + " key(s), sha " + (curSha||"").slice(0,7), true);
+  } catch(e){
+    if (String(e.message).includes("404")) {
+      setStatus("keys.txt 가 아직 없습니다. ISSUE KEY 로 첫 키를 만들어 생성하세요.");
+      curSha = null; entries = []; render();
+    } else {
+      setStatus("ERROR: " + e.message);
+    }
+  }
+}
+
+function parseEntries(content){
+  entries = [];
+  content.split(/\r?\n/).forEach((raw, i) => {
+    const line = raw.split("#")[0].trim();
+    if (!line) return;
+    const idx = line.indexOf(":");
+    if (idx === -1) entries.push({ hash: line.toLowerCase(), hwid: "" });
+    else entries.push({ hash: line.slice(0, idx).trim().toLowerCase(), hwid: line.slice(idx+1).trim().toUpperCase() });
+  });
+  render();
+}
+
+function render(){
+  const tb = $("rows");
+  tb.innerHTML = "";
+  entries.forEach((e, i) => {
+    const tr = document.createElement("tr");
+    const hwidCell = e.hwid
+      ? '<td class="hwid">' + e.hwid + '</td>'
+      : '<td class="unbound">unbound</td>';
+    tr.innerHTML = '<td>' + (i+1) + '</td>' +
+      '<td class="hash">' + e.hash + '</td>' + hwidCell +
+      '<td style="text-align:right"><button class="ghost small" onclick="deleteEntry(' + i + ')">DELETE</button></td>';
+    tb.appendChild(tr);
+  });
+  $("entryCount").textContent = entries.length + " key(s) in store" + (curSha ? " · synced" : " · local only");
+}
+
+async function commit(newContent){
+  const body = {
+    message: "keys update",
+    content: b64EncodeUtf8(newContent)
+  };
+  if (curSha) body.sha = curSha;
+  const res = await gh("/repos/" + cfg.owner + "/" + cfg.repo + "/contents/keys.txt?ref=" + encodeURIComponent(cfg.branch), {
+    method: "PUT", body: JSON.stringify(body)
+  });
+  curSha = res.content.sha;
+}
+
+async function issueKey(){
+  saveCfg();
+  const banner = $("issuedBanner");
+  banner.style.display = "none";
+  let key = $("newKey").value.trim();
+  let hwid = $("newHwid").value.trim().toUpperCase();
+  if (key && !/^[A-Za-z0-9._-]{4,}$/.test(key)){ setStatus("KEY 형식이 잘못됐습니다 (4자 이상, 영숫자/._-) "); return; }
+  if (!key){
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    for (let i=0;i<10;i++) key += chars[Math.floor(Math.random()*chars.length)];
+  }
+  const hash = await sha256Hex(key);
+  const line = hwid ? (hash + ":" + hwid) : hash;
+
+  // 로컬 목록에도 즉시 반영 후 push
+  entries.push({ hash: hash, hwid: hwid });
+  let text = entries.map(e => e.hwid ? (e.hash + ":" + e.hwid) : e.hash).join("\n") + "\n";
+  setStatus("pushing to GitHub ...");
+  try {
+    await commit(text);
+    render();
+    $("newKey").value = key;
+    $("newHwid").value = "";
+    banner.textContent = "KEY ISSUED → 유저에게 이 키를 주세요:  " + key;
+    banner.style.display = "block";
+    setStatus("ISSUED + committed", true);
+  } catch(e){
+    entries.pop(); render();
+    setStatus("ERROR: " + e.message);
+  }
+}
+
+async function deleteEntry(i){
+  if (!curSha){ setStatus("먼저 CONNECT / LOAD 해주세요"); return; }
+  if (!confirm("DELETE key #" + (i+1) + "?")) return;
+  entries.splice(i, 1);
+  const text = entries.map(e => e.hwid ? (e.hash + ":" + e.hwid) : e.hash).join("\n") + "\n";
+  setStatus("deleting ...");
+  try {
+    await commit(text);
+    render();
+    setStatus("DELETED + committed", true);
+  } catch(e){ setStatus("ERROR: " + e.message); }
+}
+
+async function refreshKeys(){ await loadKeys(); }
+
+loadCfg();
+if (cfg.owner && cfg.token) loadKeys();
+</script>
+</body>
+</html>
