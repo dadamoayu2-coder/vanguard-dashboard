@@ -476,7 +476,7 @@ document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click', 
 }));
 
 let toastT=null;
-function toast(msg, isErr){ const t=toastEl; t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600); }
+function toast(msg, isErr){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.toggle('err',!!isErr); t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'), 2600); }
 
 applyI18n();
 autoLogin();
